@@ -1,0 +1,44 @@
+
+-- FRYY HUB V5
+-- FYY HUB image reference
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "FRYY_HUB_V5"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(300, 180)
+frame.Position = UDim2.new(0.5, -150, 0.5, -90)
+frame.BackgroundColor3 = Color3.fromRGB(10, 15, 35)
+frame.Parent = gui
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 170, 255)
+stroke.Thickness = 2
+stroke.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "FRYY HUB V5"
+title.TextColor3 = Color3.fromRGB(0, 200, 255)
+title.TextSize = 22
+title.Parent = frame
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, -30, 0, 45)
+button.Position = UDim2.fromOffset(15, 65)
+button.Text = "FYY HUB IMAGE REFERENCE"
+button.TextSize = 12
+button.BackgroundColor3 = Color3.fromRGB(0, 65, 110)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Parent = frame
+
+button.Activated:Connect(function()
+    print("Reference image:")
+    print("https://api.rekonise.com/storage/serve/b64_MjMyNTgwLzE3OTA3ODM1MjI3NDUtMS5qcGc")
+end)
