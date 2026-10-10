@@ -1,44 +1,344 @@
 
--- FRYY HUB V5
--- FYY HUB image reference
+-- FRYY HUB V5 | CYBER COMPACT
+-- Roblox LocalScript
+-- For your own Roblox experience
+-- Place in StarterPlayer > StarterPlayerScripts
 
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local old = playerGui:FindFirstChild("FRYYHubV5")
+if old then old:Destroy() end
+
+local BLUE = Color3.fromRGB(0, 190, 255)
+local DARK = Color3.fromRGB(8, 15, 30)
+local PANEL = Color3.fromRGB(15, 27, 48)
+local WHITE = Color3.fromRGB(230, 245, 255)
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "FRYY_HUB_V5"
+gui.Name = "FRYYHubV5"
 gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.IgnoreGuiInset = false
+gui.Parent = playerGui
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(300, 180)
-frame.Position = UDim2.new(0.5, -150, 0.5, -90)
-frame.BackgroundColor3 = Color3.fromRGB(10, 15, 35)
-frame.Parent = gui
+local function corner(obj, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = obj
+end
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(0, 170, 255)
-stroke.Thickness = 2
-stroke.Parent = frame
+local function stroke(obj, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color
+    s.Thickness = thickness or 1
+    s.Transparency = 0.15
+    s.Parent = obj
+end
+
+local function makeButton(parent, label, position, size)
+    local b = Instance.new("TextButton")
+    b.Size = size
+    b.Position = position
+    b.BackgroundColor3 = PANEL
+    b.Text = label
+    b.TextColor3 = WHITE
+    b.TextSize = 14
+    b.Font = Enum.Font.GothamSemibold
+    b.AutoButtonColor = false
+    b.Parent = parent
+    corner(b, 9)
+    stroke(b, BLUE, 1)
+    return b
+end
+
+local function notify(message)
+    local toast = Instance.new("TextLabel")
+    toast.Size = UDim2.new(1, -20, 0, 38)
+    toast.Position = UDim2.new(0, 10, 0, 8)
+    toast.BackgroundColor3 = PANEL
+    toast.BackgroundTransparency = 0.05
+    toast.Text = "  ⚡  " .. message
+    toast.TextColor3 = WHITE
+    toast.TextSize = 13
+    toast.Font = Enum.Font.GothamMedium
+    toast.TextXAlignment = Enum.TextXAlignment.Left
+    toast.ZIndex = 10
+    toast.Parent = gui
+    corner(toast, 10)
+    stroke(toast, BLUE, 1)
+
+    toast.Position = UDim2.new(0, 10, 0, -45)
+    TweenService:Create(toast, TweenInfo.new(0.25), {
+        Position = UDim2.new(0, 10, 0, 8)
+    }):Play()
+
+    task.delay(2, function()
+        if toast.Parent then
+            local t = TweenService:Create(toast, TweenInfo.new(0.2), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1
+            })
+            t:Play()
+            t.Completed:Wait()
+            toast:Destroy()
+        end
+    end)
+end
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(280, 340)
+main.Position = UDim2.new(0.5, -140, 0.5, -170)
+main.BackgroundColor3 = DARK
+main.Parent = gui
+corner(main, 14)
+stroke(main, BLUE, 2)
+
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 48)
+header.BackgroundColor3 = PANEL
+header.Parent = main
+header.Active = true
+corner(header, 12)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 45)
+title.Size = UDim2.new(1, -85, 1, 0)
+title.Position = UDim2.fromOffset(12, 0)
 title.BackgroundTransparency = 1
 title.Text = "FRYY HUB V5"
-title.TextColor3 = Color3.fromRGB(0, 200, 255)
-title.TextSize = 22
-title.Parent = frame
+title.TextColor3 = BLUE
+title.TextSize = 17
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1, -30, 0, 45)
-button.Position = UDim2.fromOffset(15, 65)
-button.Text = "FYY HUB IMAGE REFERENCE"
-button.TextSize = 12
-button.BackgroundColor3 = Color3.fromRGB(0, 65, 110)
-button.TextColor3 = Color3.new(1, 1, 1)
-button.Parent = frame
+local minimize = makeButton(
+    header, "—", UDim2.new(1, -68, 0, 8),
+    UDim2.fromOffset(28, 30)
+)
+local close = makeButton(
+    header, "×", UDim2.new(1, -34, 0, 8),
+    UDim2.fromOffset(28, 30)
+)
 
-button.Activated:Connect(function()
-    print("Reference image:")
-    print("https://api.rekonise.com/storage/serve/b64_MjMyNTgwLzE3OTA3ODM1MjI3NDUtMS5qcGc")
+-- Drag with mouse or touch
+local dragging = false
+local dragStart, startPos, dragInput
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+        dragInput = input
+    end
 end)
+
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+local reopen = makeButton(
+    gui, "⚡ FRYY", UDim2.new(0, 12, 0.5, -22),
+    UDim2.fromOffset(82, 44)
+)
+reopen.Visible = false
+
+minimize.Activated:Connect(function()
+    main.Visible = false
+    reopen.Visible = true
+    notify("Hub minimized")
+end)
+
+close.Activated:Connect(function()
+    main.Visible = false
+    reopen.Visible = true
+    notify("Hub hidden — tap FRYY to reopen")
+end)
+
+reopen.Activated:Connect(function()
+    main.Visible = true
+    reopen.Visible = false
+    notify("Welcome back!")
+end)
+
+-- Tabs
+local tabs = Instance.new("Frame")
+tabs.Position = UDim2.fromOffset(8, 56)
+tabs.Size = UDim2.new(1, -16, 0, 35)
+tabs.BackgroundTransparency = 1
+tabs.Parent = main
+
+local pages = Instance.new("Frame")
+pages.Position = UDim2.fromOffset(8, 98)
+pages.Size = UDim2.new(1, -16, 1, -106)
+pages.BackgroundTransparency = 1
+pages.Parent = main
+
+local function makePage()
+    local page = Instance.new("Frame")
+    page.Size = UDim2.fromScale(1, 1)
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.Parent = pages
+    return page
+end
+
+local home = makePage()
+local settings = makePage()
+local tools = makePage()
+home.Visible = true
+
+local function addTab(label, x, page)
+    local b = makeButton(
+        tabs, label, UDim2.new(0, x, 0, 0),
+        UDim2.fromOffset(84, 32)
+    )
+    b.Activated:Connect(function()
+        home.Visible = false
+        settings.Visible = false
+        tools.Visible = false
+        page.Visible = true
+
+        TweenService:Create(b, TweenInfo.new(0.12), {
+            BackgroundColor3 = BLUE
+        }):Play()
+
+        task.delay(0.2, function()
+            if b.Parent then
+                TweenService:Create(b, TweenInfo.new(0.2), {
+                    BackgroundColor3 = PANEL
+                }):Play()
+            end
+        end)
+    end)
+end
+
+addTab("HOME", 0, home)
+addTab("SETTINGS", 88, settings)
+addTab("GAME TOOLS", 176, tools)
+
+local function addText(parent, text, y, height)
+    local label = Instance.new("TextLabel")
+    label.Position = UDim2.fromOffset(3, y)
+    label.Size = UDim2.new(1, -6, 0, height or 30)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = WHITE
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamMedium
+    label.TextWrapped = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = parent
+    return label
+end
+
+local function animateButton(button)
+    button.Activated:Connect(function()
+        local original = button.Size
+        TweenService:Create(button, TweenInfo.new(0.08), {
+            Size = UDim2.new(
+                original.X.Scale, original.X.Offset - 3,
+                original.Y.Scale, original.Y.Offset - 2
+            )
+        }):Play()
+        task.delay(0.09, function()
+            if button.Parent then
+                TweenService:Create(button, TweenInfo.new(0.1), {
+                    Size = original
+                }):Play()
+            end
+        end)
+    end)
+end
+
+addText(home, "CYBER SYSTEM  //  ONLINE", 4, 28)
+local welcome = makeButton(
+    home, "TEST NOTIFICATION", UDim2.fromOffset(2, 40),
+    UDim2.new(1, -4, 0, 38)
+)
+animateButton(welcome)
+welcome.Activated:Connect(function()
+    notify("FRYY systems online!")
+end)
+
+local status = addText(home, "Blue neon interface ready.", 88, 36)
+
+local glow = true
+local glowButton = makeButton(
+    settings, "NEON EFFECT: ON", UDim2.fromOffset(2, 5),
+    UDim2.new(1, -4, 0, 38)
+)
+animateButton(glowButton)
+
+glowButton.Activated:Connect(function()
+    glow = not glow
+    glowButton.Text = "NEON EFFECT: " .. (glow and "ON" or "OFF")
+    local border = main:FindFirstChildOfClass("UIStroke")
+    if border then
+        border.Transparency = glow and 0.15 or 0.85
+    end
+    notify(glow and "Neon enabled" or "Neon dimmed")
+end)
+
+local eggCount = 0
+local eggLabel = addText(tools, "DEMO EGG PROGRESS: 0", 4, 32)
+local addEgg = makeButton(
+    tools, "+1 DEMO PROGRESS", UDim2.fromOffset(2, 42),
+    UDim2.new(1, -4, 0, 38)
+)
+local resetEgg = makeButton(
+    tools, "RESET COUNTER", UDim2.fromOffset(2, 88),
+    UDim2.new(1, -4, 0, 38)
+)
+
+animateButton(addEgg)
+animateButton(resetEgg)
+
+addEgg.Activated:Connect(function()
+    eggCount += 1
+    eggLabel.Text = "DEMO EGG PROGRESS: " .. eggCount
+    notify("Demo progress: " .. eggCount)
+end)
+
+resetEgg.Activated:Connect(function()
+    eggCount = 0
+    eggLabel.Text = "DEMO EGG PROGRESS: 0"
+    notify("Demo counter reset")
+end)
+
+main.BackgroundTransparency = 1
+main.Size = UDim2.fromOffset(260, 320)
+
+TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+    BackgroundTransparency = 0,
+    Size = UDim2.fromOffset(280, 340)
+}):Play()
+
+notify("FRYY HUB V5 loaded!")
+
